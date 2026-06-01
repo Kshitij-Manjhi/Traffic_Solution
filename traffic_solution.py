@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+import pygeohash as pgh
 from catboost import CatBoostRegressor
 from sklearn.model_selection import KFold
 from sklearn.metrics import r2_score
@@ -21,6 +22,15 @@ test_ids = test["Index"]
 def create_features(df):
     df = df.copy()
 
+    # Decode geohash into coordinates
+
+    df["lat"] = df["geohash"].apply(
+        lambda x: pgh.decode(x)[0]
+    )
+
+    df["lon"] = df["geohash"].apply(
+        lambda x: pgh.decode(x)[1]
+    )
     t = df["timestamp"].astype(str).str.split(":", expand=True)
 
     df["hour"] = t[0].astype(int)
@@ -30,6 +40,19 @@ def create_features(df):
 
     df["hour_sin"] = np.sin(2 * np.pi * df["time_float"] / 24)
     df["hour_cos"] = np.cos(2 * np.pi * df["time_float"] / 24)
+    
+    df["lat_hour"] = df["lat"] * df["hour"]
+    df["lon_hour"] = df["lon"] * df["hour"]
+
+    df["lat_temp"] = (
+        df["lat"] *
+        df["Temperature"].fillna(0)
+    )
+
+    df["lon_temp"] = (
+        df["lon"] *
+        df["Temperature"].fillna(0)
+    )
 
     df["morning_peak"] = ((df["hour"] >= 7) & (df["hour"] <= 10)).astype(int)
     df["evening_peak"] = ((df["hour"] >= 17) & (df["hour"] <= 20)).astype(int)
