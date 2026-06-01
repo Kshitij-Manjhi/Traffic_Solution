@@ -100,6 +100,24 @@ for fold, (train_idx, valid_idx) in enumerate(kf.split(X)):
 
     X_valid = X.iloc[valid_idx]
     y_valid = y.iloc[valid_idx]
+    
+    # =========================
+    # For CPU Training
+    # =========================
+
+#    model = CatBoostRegressor(
+#        iterations=5000,
+#        depth=10,
+#        learning_rate=0.03,
+#        loss_function="RMSE",
+#        eval_metric="R2",
+#        random_seed=42,
+#        verbose=500
+#    )
+
+    # =========================
+    # For GPU Training
+    # =========================
 
     model = CatBoostRegressor(
         iterations=5000,
@@ -107,6 +125,8 @@ for fold, (train_idx, valid_idx) in enumerate(kf.split(X)):
         learning_rate=0.03,
         loss_function="RMSE",
         eval_metric="R2",
+        task_type="GPU",
+        devices="0",
         random_seed=42,
         verbose=500
     )
