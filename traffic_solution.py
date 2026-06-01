@@ -35,7 +35,6 @@ def create_features(df):
 
     df["hour"] = t[0].astype(int)
     df["minute"] = t[1].astype(int)
-
     df["time_float"] = df["hour"] + df["minute"] / 60
 
     df["hour_sin"] = np.sin(2 * np.pi * df["time_float"] / 24)
@@ -56,6 +55,12 @@ def create_features(df):
 
     df["morning_peak"] = ((df["hour"] >= 7) & (df["hour"] <= 10)).astype(int)
     df["evening_peak"] = ((df["hour"] >= 17) & (df["hour"] <= 20)).astype(int)
+    
+    df["rush_hour"] = (
+        ((df["hour"] >= 7) & (df["hour"] <= 10))
+        |
+        ((df["hour"] >= 16) & (df["hour"] <= 20))
+    ).astype(int)
 
     # IMPORTANT
     df.drop(columns=["timestamp"], inplace=True)
