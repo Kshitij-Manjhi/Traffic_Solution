@@ -71,6 +71,54 @@ train = create_features(train)
 test = create_features(test)
 
 # =========================
+# Geohash Mean Demand
+# =========================
+
+geo_mean = train.groupby("geohash")["demand"].mean()
+
+train["geo_mean_demand"] = train["geohash"].map(geo_mean)
+test["geo_mean_demand"] = test["geohash"].map(geo_mean)
+
+global_mean = train["demand"].mean()
+
+test["geo_mean_demand"] = test["geo_mean_demand"].fillna(global_mean)
+
+# =========================
+# Hour Mean Demand
+# =========================
+
+hour_mean = train.groupby("hour")["demand"].mean()
+
+train["hour_mean_demand"] = train["hour"].map(hour_mean)
+test["hour_mean_demand"] = test["hour"].map(hour_mean)
+
+# =========================
+# Geohash + Hour Mean Demand
+# =========================
+
+geo_hour_mean = train.groupby(
+    ["geohash", "hour"]
+)["demand"].mean()
+
+global_mean = train["demand"].mean()
+
+train["geo_hour_mean"] = train.apply(
+    lambda r: geo_hour_mean.get(
+        (r["geohash"], r["hour"]),
+        global_mean
+    ),
+    axis=1
+)
+
+test["geo_hour_mean"] = test.apply(
+    lambda r: geo_hour_mean.get(
+        (r["geohash"], r["hour"]),
+        global_mean
+    ),
+    axis=1
+)
+
+# =========================
 # Missing Values
 # =========================
 
@@ -152,7 +200,7 @@ for fold, (train_idx, valid_idx) in enumerate(kf.split(X)):
         depth=10,
         learning_rate=0.03,
         loss_function="RMSE",
-        eval_metric="R2",
+        eval_metric="RMSE",
         task_type="GPU",
         devices="0",
         random_seed=42,
